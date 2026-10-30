@@ -1,0 +1,55 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kopi Jonoh</title>
+<script src="/theme.js"></script><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
+<body><header class="top"><div><div class="brand">Kopi Jonoh<i>.</i></div><small>Duduk manis, kami antar ke mejamu</small></div><div class="hr"><div class="tb"><button class="g s" data-theme-btn></button><button class="g s" data-bgm-btn></button></div><div class="mejab">MEJA<b id="tn"></b></div></div></header>
+<div class="bulbs" aria-hidden="true"></div>
+<div class="mq"><div><span>☕ Kopi susu, favorit semua orang</span><span>🍰 Camilan manis menemani santai</span><span>🧋 Segar-segar sepanjang hari</span><span>🍛 Lapar? Ada nasi goreng!</span><span>🥤 Es dingin buat siang yang panas</span><span>🍞 Roti bakar hangat, baru dibakar</span><span>☕ Kopi susu, favorit semua orang</span><span>🍰 Camilan manis menemani santai</span><span>🧋 Segar-segar sepanjang hari</span><span>🍛 Lapar? Ada nasi goreng!</span><span>🥤 Es dingin buat siang yang panas</span><span>🍞 Roti bakar hangat, baru dibakar</span></div></div>
+<div id="shop"><div class="wrap" id="hero" style="padding-bottom:0"></div><nav class="chips" id="chips"></nav><main class="wrap" id="list"></main></div>
+<div class="wrap" id="stat" hidden></div>
+<div class="bar" id="bar" hidden><button id="open"></button></div>
+<div class="sheet" id="sheet" hidden><div id="sh"></div></div>
+<script src="/fx.js"></script><script src="/bgm.js"></script><script src="/sfx.js"></script><script>
+const T=+location.pathname.split('/')[2],$=s=>document.querySelector(s),f=n=>'Rp '+n.toLocaleString('id-ID'),e=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const api=(u,b)=>fetch(u,b&&{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(async r=>{const j=await r.json();if(!r.ok)throw Object.assign(new Error(j.error),j);return j});
+let M,cart={},oid=+localStorage.getItem('o'+T)||0,poll,last,key,qris;
+$('#tn').textContent=T;
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),3500)}
+async function init(){try{await api('/api/table/'+T)}catch{document.body.innerHTML='<div class="es"><h1>Meja tidak ditemukan</h1><p>Scan ulang QR di meja kamu.</p></div>';return}
+ M=await api('/api/menu');if(oid){try{const o=await api('/api/order/'+oid);if(!['done','cancelled'].includes(o.status))return track()}catch{}localStorage.removeItem('o'+T);oid=0}shop()}
+const lines=()=>Object.keys(cart).map(id=>({...M.items.find(x=>x.id==id),q:cart[id]})).filter(x=>x.id);
+const stag=el=>[...el.children].forEach((c,i)=>c.style.setProperty('--i',Math.min(i,14)));
+const step=id=>cart[id]?`<div class="stp"><button onclick="chg(${id},-1)" aria-label="Kurangi">−</button><b>${cart[id]}</b><button onclick="chg(${id},1)" aria-label="Tambah">+</button></div>`:`<button class="add" onclick="chg(${id},1)">Tambah</button>`;
+const row=(i,n)=>`<div class="mi${i.available?'':' off'}" style="--i:${n}"><div class="em">${i.emoji}</div><div class="mt"><b>${e(i.name)}</b><span class="ld"></span>${i.available?`<span class="pr">${f(i.price)}</span>`:'<span class="stamp">Habis</span>'}</div>${i.available?`<div class="mc s${i.id}">${step(i.id)}</div>`:''}</div>`;
+const fav=(i,n)=>`<div class="fv" style="--i:${n}"><span class="e">${i.emoji}</span><b>${e(i.name)}</b><div class="pr">${f(i.price)}</div><div class="s${i.id}">${step(i.id)}</div></div>`;
+const HERO=`<svg class="hi" viewBox="0 0 150 92" aria-hidden="true"><path d="M4 89H146" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".35"/><use href="#g-tea" x="4" y="30" width="44" height="58.7"/><use href="#g-takeaway" x="104" y="32" width="42" height="56"/><use href="#g-cup" x="51" y="25" width="48" height="64"/><path class="st" d="M66 50c-4-4 4-7 0-12"/><path class="st" d="M75 50c-4-4 4-7 0-14"/><path class="st" d="M84 50c-4-4 4-7 0-12"/></svg>`;
+function shop(){clearInterval(poll);$('#stat').hidden=true;$('#shop').hidden=false;const av=M.items.filter(i=>i.available).slice(0,6);
+ $('#hero').innerHTML=`<div class="hero"><div class="ht"><h2>Mau ngopi apa hari ini?</h2><p>Pilih, pesan, lalu duduk manis. Kami antar ke Meja ${T}.</p><span class="bd">⚡ Cepat disajikan</span><span class="bd">💳 Tunai atau QRIS</span></div>${HERO}</div>${av.length?`<h2 class="fh" style="--i:2">🔥 Lagi favorit</h2><div class="fav" style="--i:3">${av.map(fav).join('')}</div>`:''}`;
+ $('#chips').innerHTML=M.categories.map(c=>`<a href="#c${c.id}">${e(c.name)}</a>`).join('');
+ $('#list').innerHTML=M.categories.map(c=>{const it=M.items.filter(i=>i.category_id==c.id);return it.length?`<section id="c${c.id}"><h2 class="cb"><span class="ch">${it[0].emoji}</span><span>${e(c.name)}</span><small>${it.length} menu</small></h2><div class="rows">${it.map(row).join('')}</div></section>`:''}).join('')||'<div class="es"><div class="sb">🍽️</div><h2>Menu sedang disiapkan</h2><p class="mu">Coba lagi sebentar lagi, ya.</p></div>';
+ const io=new IntersectionObserver(es=>es.forEach(x=>x.isIntersecting&&document.querySelectorAll('.chips a').forEach(a=>a.classList.toggle('on',a.hash=='#'+x.target.id))),{rootMargin:'-30% 0px -60% 0px'});document.querySelectorAll('#list section').forEach(x=>io.observe(x));bar()}
+function chg(id,d){cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];sfx.play(d>0?'add':'rem');document.querySelectorAll('.s'+id).forEach(s=>s.innerHTML=step(id));bar(1);if(!$('#sheet').hidden)sheetR()}
+function bar(p){const l=lines(),n=l.reduce((a,x)=>a+x.q,0),t=l.reduce((a,x)=>a+x.q*x.price,0);$('#bar').hidden=!n||!$('#stat').hidden;$('#open').innerHTML=`<span>🛒 Lihat pesanan (${n})</span><b>${f(t)}</b>`;if(p){const b=$('#open');b.classList.remove('pp');void b.offsetWidth;b.classList.add('pp')}}
+$('#open').onclick=()=>{$('#sheet').hidden=false;sheetR()};
+$('#sheet').onclick=ev=>{if(ev.target.id=='sheet')$('#sheet').hidden=true};
+function sheetR(){const l=lines();if(!l.length){$('#sheet').hidden=true;return}const note=$('#note')?.value||'';
+ $('#sh').innerHTML=`<h2 style="font-size:26px">Pesanan Meja ${T}</h2>${l.map(x=>`<div class="ln"><span>${e(x.name)}<br><small class="mu">${f(x.price)}</small></span>${step(x.id)}</div>`).join('')}
+ <label for="note">Catatan untuk dapur</label><textarea id="note" rows="2" maxlength="200" placeholder="Contoh: less sugar, tanpa es"></textarea>
+ <div class="tot"><span>Total</span><span>${f(l.reduce((a,x)=>a+x.q*x.price,0))}</span></div><button id="go" style="width:100%;padding:15px" onclick="order()">Kirim pesanan</button>`;$('#note').value=note}
+async function order(){$('#go').disabled=true;try{const o=await api('/api/order',{table:T,items:lines().map(x=>({id:x.id,qty:x.q})),note:$('#note').value});oid=o.id;localStorage.setItem('o'+T,oid);cart={};last=key=null;$('#sheet').hidden=true;track()}
+ catch(x){toast(x.message);sfx.play('bad');M=await api('/api/menu');for(const id in cart)if(!M.items.find(i=>i.id==id&&i.available))delete cart[id];shop();sheetR()}}
+async function track(){$('#shop').hidden=true;$('#bar').hidden=true;$('#stat').hidden=false;clearInterval(poll);await tick();poll=setInterval(tick,3000)}
+async function tick(){try{const o=await api('/api/order/'+oid);if(last&&last!=o.status)sfx.play({paid:'success',done:'done',cancelled:'bad'}[o.status]||'wait');last=o.status;stat(o)}catch{}}
+async function pay(m){try{await api(`/api/order/${oid}/pay`,{method:m});tick()}catch(x){toast(x.message);sfx.play('bad');tick()}}
+async function stat(o){const k=o.status+o.method;if(k==key)return;key=k;
+ const S=['unpaid','waiting','paid','done'],i=S.indexOf(o.status),L=['Dipesan','Pembayaran','Dibuat','Siap'];
+ let h=o.status=='cancelled'?'':`<div class="tl">${L.map((l,j)=>`<div class="${j<i||o.status=='done'?'d':j==i?'n':''}">${l}</div>`).join('')}</div>`;
+ const sum=`<div class="card">${o.items.map(x=>`<div class="ln"><span>${x.qty}× ${e(x.name)}</span><span>${f(x.qty*x.price)}</span></div>`).join('')}<div class="tot"><span>Total</span><span>${f(o.total)}</span></div></div>`;
+ if(o.status=='unpaid')h+=`<h2 style="font-size:26px">Pesanan #${o.id} terkirim</h2><p class="mu">Pilih cara bayar untuk melanjutkan.</p>${sum}<div class="pay"><button onclick="pay('cash')">Bayar tunai di kasir</button>${M.qris?'<button class="y" onclick="pay(\'qris\')">Bayar dengan QRIS</button>':''}</div>`;
+ else if(o.status=='waiting'){if(o.method=='qris'&&qris===undefined)qris=(await api('/api/qris')).image;
+  h+=o.method=='qris'&&qris?`<h2 style="font-size:26px">Scan untuk membayar</h2><div class="card" style="text-align:center"><img src="${qris}" alt="QRIS" style="max-width:100%;width:280px"><div class="big">${f(o.total)}</div><p class="mu">Setelah bayar, kasir akan mengonfirmasi pesanan kamu.</p></div>`:`<h2 style="font-size:26px">Menuju kasir</h2><p class="mu">Bayar ${f(o.total)} di kasir. Pesanan diproses setelah dikonfirmasi.</p>`;h+=sum}
+ else if(o.status=='paid')h+=`<h2 style="font-size:26px">Barista sedang menyiapkan</h2><p class="mu">Pembayaran diterima. Pesanan akan diantar ke Meja ${o.table_number}.</p>${sum}`;
+ else if(o.status=='done')h+=`<h2 style="font-size:26px">Pesanan siap, selamat menikmati</h2>${sum}<button style="width:100%" onclick="again()">Pesan lagi</button>`;
+ else h+=`<div class="es"><h2>Pesanan dibatalkan</h2><p>Belum ada pembayaran yang diproses.</p><br><button onclick="again()">Kembali ke menu</button></div>`;
+ $('#stat').innerHTML=`<div class="sb">${{unpaid:'🧾',waiting:o.method=='qris'?'📱':'💵',paid:'☕',done:'🎉',cancelled:'😔'}[o.status]}</div>`+h;stag($('#stat'))}
+async function again(){localStorage.removeItem('o'+T);oid=0;last=key=null;M=await api('/api/menu');shop()}
+init();
+</script></body></html>
