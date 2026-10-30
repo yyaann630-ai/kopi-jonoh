@@ -2,7 +2,9 @@ process.env.TZ = process.env.TZ || 'Asia/Makassar';
 const os = require('os'), http = require('http'), fs = require('fs'), path = require('path'), crypto = require('crypto');
 const { DatabaseSync } = require('node:sqlite');
 const QRCode = require('./lib/qr'), QL = require('./lib/qr/QRErrorCorrectLevel');
-const PORT = process.env.PORT || 3000, PASS = process.env.ADMIN_PASSWORD || 'ryann31';
+const PORT = process.env.PORT || 3000;
+const PASS = process.env.ADMIN_PASSWORD;
+if (!PASS) throw new Error('ADMIN_PASSWORD belum diatur!');
 const db = new DatabaseSync(path.join(__dirname, 'cafe.db'));
 db.exec(`
 CREATE TABLE IF NOT EXISTS tables(id INTEGER PRIMARY KEY AUTOINCREMENT, number INTEGER UNIQUE);
