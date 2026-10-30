@@ -117,4 +117,4 @@ http.createServer(async (req, res) => {
       return out?.raw ? send(200, out.raw, out.type, h) : send(200, JSON.stringify(out), 'application/json', h); }
     throw err(404, 'API tidak ada');
   } catch (e) { res.writeHead(e.status || 500, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: e.status ? e.message : 'Server error', ...e.extra })); if (!e.status) console.error(e); }
-}).listen(PORT, () => console.log(`\n☕ Cafe berjalan\n   Admin    : http://localhost:${PORT}/admin  (password: ${PASS})\n   Pelanggan: http://localhost:${PORT}/m/1  (via QR meja)\n   Alamat HP (satu WiFi): http://${lanIP() || 'IP-laptop'}:${PORT}/m/1\n`));
+}).listen(PORT, () => console.log(`\n☕ Cafe berjalan\n   Admin    : http://localhost:${PORT}/admin \n   Pelanggan: http://localhost:${PORT}/m/1  (via QR meja)\n   Alamat HP (satu WiFi): http://${lanIP() || 'IP-laptop'}:${PORT}/m/1\n`));
