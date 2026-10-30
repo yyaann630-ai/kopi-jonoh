@@ -1,0 +1,7 @@
+node_modules
+cafe.db
+cafe.db-journal
+cafe.db-wal
+cafe.db-shm
+.git
+start.bat
